@@ -5,21 +5,94 @@ output:
     keep_md: true
 ---
 
-
 ## Loading and preprocessing the data
-
-
+```{r, echo=TRUE}
+  require(plyr)
+  require(ggplot2)
+  require(lattice)
+  data <- read.csv("activity.csv")
+```
 
 ## What is mean total number of steps taken per day?
+* Make a histogram of the total number of steps taken each day
+```{r, echo=TRUE}
+  ds1 <- ddply(data, .(date),  summarize,sum = sum(steps))
+  hist(ds1$sum,col="red", xlab = "Total Steps per day", ylab = "Frequency", 
+    main = "Total Steps taken per day")
+```
 
+* Calculate `mean` and `median` total number of steps taken per day.
+```{r, echo=TRUE}
+  meanStepsPerDay <- mean(ds1$sum,na.rm=TRUE)
+  medianStepsPerDay <- median(ds1$sum,na.rm=TRUE)
+```
+*
+    + Mean of total steps per day:  `r format(meanStepsPerDay, sciencific = T)` 
+    + Median of toal steps per day: `r  format(medianStepsPerDay, sciencific = T)` 
 
+---
 
 ## What is the average daily activity pattern?
+##### Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+```{r, echo=TRUE}
+  ds2 <- ddply(data, .(interval),  summarize,mean = mean(steps,na.rm=TRUE))
+  xyplot( mean ~ interval , data=ds2 ,type ="l",xlab = "Time Intervals (5-minute)", 
+    ylab = "Mean number of steps taken (all Days)", main = "Average number of Steps taken at different 5 minute Intervals")
+```
 
+##### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+- Interval which contain maximum number of steps: `r ds2[which.max(ds2$mean),]$interval`
 
+---
 
 ## Imputing missing values
+##### Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+```{r, echo=TRUE}
+missingCount <- sum(is.na(data$steps))
+```
+- No of missing values: `r missingCount` 
 
 
+    
+##### Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+  -  **Stategy Used** :  Replace missing values with mean for the interval
+  
+```{r, echo=TRUE} 
+  meanLookUp <-function(interval){
+   ds2[which(ds2$interval == interval),]$mean
+  }
+  imputedData = data
+  for (i in which(is.na(imputedData$steps))){
+    imputedData[i,]$steps <- meanLookUp(imputedData[i,]$interval)
+  }
+```  
+##### Create a new dataset that is equal to the original dataset but with the missing data filled in.  
+  - Imputed dataset is in imputedData  
+
+###### Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+```{r, echo=TRUE} 
+  ds3 <- ddply(imputedData, .(date),  summarize,sum = sum(steps))
+  hist(ds3$sum,col="green", xlab = "Total Steps per day", ylab = "Frequency", 
+    main = "Total Steps taken per day")
+  meanStepsPerDayImputed <- mean(ds3$sum)
+  medianStepsPerDayImputed <- median(ds3$sum)
+```
+
+
+  - Mean  total steps per day (using inputedData):  `r format(meanStepsPerDayImputed, sciencific = T)` 
+  - Median total steps per day (using inputedData): `r format(medianStepsPerDayImputed, sciencific = T)`
+
+  - Mean values are same because as we used average mean values for missing values. median values shows a little difference as inputed data set would move the median depending on where the missing values were in the original set .
+
+---
 
 ## Are there differences in activity patterns between weekdays and weekends?
+##### Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+```{r, echo=TRUE}
+```
+
+##### Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+```{r, echo=TRUE}
+```

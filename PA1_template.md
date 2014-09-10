@@ -1,32 +1,16 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
 
 ## Loading and preprocessing the data
 
 ```r
   require(plyr)
-```
-
-```
-## Loading required package: plyr
-```
-
-```r
   require(ggplot2)
-```
-
-```
-## Loading required package: ggplot2
-```
-
-```r
   require(lattice)
-```
-
-```
-## Loading required package: lattice
-```
-
-```r
   data <- read.csv("activity.csv")
 ```
 
@@ -39,7 +23,7 @@
     main = "Total Steps taken per day")
 ```
 
-![plot of chunk unnamed-chunk-2](./PA1_template_files/figure-html/unnamed-chunk-2.png) 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
 
 * Calculate `mean` and `median` total number of steps taken per day.
 
@@ -59,10 +43,10 @@
 ```r
   ds2 <- ddply(data, .(interval),  summarize,mean = mean(steps,na.rm=TRUE))
   xyplot( mean ~ interval , data=ds2 ,type ="l",xlab = "Time Intervals (5-minute)", 
-    ylab = "Mean number of steps taken (all Days)", main = "Average number of Steps taken at different 5 minute Intervals")
+    ylab = "Mean number of steps taken (all Days)", main = "Average number of Steps taken at  5 minute Intervals")
 ```
 
-![plot of chunk unnamed-chunk-4](./PA1_template_files/figure-html/unnamed-chunk-4.png) 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
 
 ##### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 - Interval which contain maximum number of steps: 835
@@ -105,7 +89,7 @@ missingCount <- sum(is.na(data$steps))
     main = "Total Steps taken per day")
 ```
 
-![plot of chunk unnamed-chunk-7](./PA1_template_files/figure-html/unnamed-chunk-7.png) 
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
 
 ```r
   meanStepsPerDayImputed <- mean(ds3$sum)
@@ -123,6 +107,16 @@ missingCount <- sum(is.na(data$steps))
 ## Are there differences in activity patterns between weekdays and weekends?
 ##### Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
+```r
+  typeOfDay <- function(mydate) { if (weekdays(as.Date(mydate)) %in% c("Saturday", "Sunday")) return ("weekend") else return ("weekday")}
+  imputedData$typeOfDay <- apply(imputedData[,c('date', 'steps')], 1, function(x) typeOfDay(x[1]))
+```
 
 ##### Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
+```r
+ ds4 <- ddply(imputedData, .(interval,typeOfDay),  summarize,mean = mean(steps))
+ xyplot( mean ~ interval|factor(typeOfDay) , data=ds4 ,type ="l",layout = c(1, 2), xlab = "Time Intervals (5-minute)", ylab = "Mean number of steps across all weekday days or weekend days", main = "Average number of Steps taken at  5 minute Intervals")
+```
+
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9.png) 
